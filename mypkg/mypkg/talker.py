@@ -3,20 +3,21 @@ import rclpy
  #ノードを実装するためのNodeクラス（クラスは第10回で）
 from rclpy.node import Node
 #通信の型（16ビットの符号付き整数）
-from person_msgs.srv import Query
+from std_msgs.msg import Int16
 
 rclpy.init()
 node = Node("talker")
+pub = node.create_publisher(Int16, "countup", 10)
+n = 0
 
-def cb(request, response):
-    if request.name == "上田隆一":
-        response.age = 46
-    else:
-        response.age = 255
- 
-    return response
- 
- 
+def cb():
+    global n       #関数を抜けてもnがリセットされないようにしている
+    msg = Int16()  #メッセージの「オブジェクト」
+    msg.data = n   #msgオブジェクトの持つdataにnを結び付け
+    pub.publish(msg)        #pubの持つpublishでメッセージ送信
+    n += 1
+
+
 def main():
-    srv = node.create_service(Query, "query", cb) #サービスの作成     
-    rclpy.spin(node)
+    node.create_timer(0.5, cb)  #タイマー設定
+    rclpy.spin(node) 
